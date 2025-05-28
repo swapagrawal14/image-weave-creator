@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Generator</title>
+    <title>Swap Creations v2.0</title>
     <style>
         * {
             margin: 0;
@@ -12,60 +12,163 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 25%, #667eea 75%, #764ba2 100%);
+            --bg-overlay: rgba(255, 255, 255, 0.95);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-color: #e1e5e9;
+            --accent-color: #667eea;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #2c1810 0%, #1a1a2e 25%, #16213e 75%, #0f0f23 100%);
+            --bg-overlay: rgba(20, 20, 30, 0.95);
+            --text-primary: #e1e5e9;
+            --text-secondary: #a0a5b0;
+            --card-bg: rgba(30, 30, 40, 0.95);
+            --border-color: #404055;
+            --accent-color: #667eea;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            color: var(--text-primary);
+            position: relative;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        .star:nth-child(odd) {
+            animation-delay: 1s;
+        }
+
+        .star:nth-child(3n) {
+            animation-delay: 2s;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+            animation: float 6s ease-in-out infinite;
+            transition: all 0.3s ease;
         }
 
         .header {
             text-align: center;
             margin-bottom: 40px;
+            position: relative;
         }
 
         .header h1 {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #667eea, #764ba2, #ff6b6b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: bold;
             margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .header p {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 1.1rem;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .security-warning {
             background: linear-gradient(135deg, #ff9a56, #ff6b6b);
             color: white;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 15px;
             margin-bottom: 30px;
             text-align: center;
             font-weight: 500;
+            box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
         .form-section {
             margin-bottom: 30px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         .form-section h3 {
-            color: #444;
+            color: var(--text-primary);
             margin-bottom: 15px;
             font-size: 1.2rem;
             display: flex;
@@ -81,23 +184,25 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #555;
+            color: var(--text-secondary);
         }
 
         input[type="password"], textarea {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--card-bg);
+            color: var(--text-primary);
         }
 
         input[type="password"]:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: scale(1.01);
         }
 
         textarea {
@@ -107,23 +212,49 @@
         }
 
         .file-upload-area {
-            border: 2px dashed #ddd;
-            border-radius: 10px;
+            border: 2px dashed var(--border-color);
+            border-radius: 15px;
             padding: 30px;
             text-align: center;
             transition: all 0.3s ease;
             cursor: pointer;
-            background: #fafafa;
+            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .file-upload-area:hover::before {
+            opacity: 1;
+            animation: shimmer 1.5s ease-in-out;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
 
         .file-upload-area:hover {
-            border-color: #667eea;
-            background: #f0f4ff;
+            border-color: var(--accent-color);
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.02);
         }
 
         .file-upload-area.dragover {
-            border-color: #667eea;
-            background: #f0f4ff;
+            border-color: var(--accent-color);
+            background: rgba(102, 126, 234, 0.1);
             transform: scale(1.02);
         }
 
@@ -133,8 +264,13 @@
 
         .upload-icon {
             font-size: 3rem;
-            color: #ddd;
+            color: var(--text-secondary);
             margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover .upload-icon {
+            transform: scale(1.1);
         }
 
         .thumbnails-container {
@@ -153,7 +289,7 @@
         }
 
         .thumbnail:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(1deg);
         }
 
         .thumbnail img {
@@ -183,6 +319,7 @@
         .thumbnail .remove-btn:hover {
             background: #ff4757;
             color: white;
+            transform: scale(1.1);
         }
 
         .generate-btn {
@@ -190,18 +327,35 @@
             color: white;
             border: none;
             padding: 15px 30px;
-            border-radius: 10px;
+            border-radius: 15px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             width: 100%;
             margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .generate-btn:hover::before {
+            left: 100%;
         }
 
         .generate-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
         .generate-btn:disabled {
@@ -211,35 +365,36 @@
 
         .status-message {
             padding: 12px 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 20px;
             font-weight: 500;
             transition: all 0.3s ease;
+            border-left: 4px solid;
         }
 
         .status-message.info {
-            background: #e3f2fd;
+            background: rgba(33, 150, 243, 0.1);
             color: #1976d2;
-            border-left: 4px solid #2196f3;
+            border-left-color: #2196f3;
         }
 
         .status-message.success {
-            background: #e8f5e8;
+            background: rgba(76, 175, 80, 0.1);
             color: #2e7d32;
-            border-left: 4px solid #4caf50;
+            border-left-color: #4caf50;
         }
 
         .status-message.error {
-            background: #ffebee;
+            background: rgba(244, 67, 54, 0.1);
             color: #c62828;
-            border-left: 4px solid #f44336;
+            border-left-color: #f44336;
         }
 
         .loading-spinner {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid #f3f3f3;
+            border: 3px solid rgba(102, 126, 234, 0.3);
             border-top: 3px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -254,23 +409,30 @@
         .results-section {
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 2px solid #eee;
+            border-top: 2px solid var(--border-color);
+            transition: all 0.3s ease;
         }
 
         .result-image {
             max-width: 100%;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .result-image:hover {
+            transform: scale(1.02);
         }
 
         .result-text {
-            background: #f8f9fa;
+            background: var(--card-bg);
             padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
+            border-radius: 15px;
+            border-left: 4px solid var(--accent-color);
             font-style: italic;
-            color: #555;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
         }
 
         .grid-layout {
@@ -298,6 +460,11 @@
             .thumbnails-container {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
+
+            .theme-toggle {
+                position: static;
+                margin: 0 auto 20px auto;
+            }
         }
 
         .fade-in {
@@ -310,10 +477,17 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="light">
+    <div class="stars" id="stars"></div>
+    
     <div class="container">
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <span id="themeIcon">🌙</span>
+            <span id="themeText">Dark Mode</span>
+        </div>
+        
         <div class="header">
-            <h1>🎨 AI Image Generator</h1>
+            <h1>✨ Swap Creations v2.0</h1>
             <p>Upload reference images and describe your vision to generate stunning AI artwork</p>
         </div>
 
@@ -365,6 +539,60 @@
     </div>
 
     <script>
+        // Create animated stars
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const numberOfStars = 100;
+            
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            body.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
         class AIImageGenerator {
             constructor() {
                 this.uploadedImages = [];
@@ -645,7 +873,11 @@
         }
 
         // Initialize the application
-        const app = new AIImageGenerator();
+        window.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            loadTheme();
+            window.app = new AIImageGenerator();
+        });
     </script>
 </body>
 </html>
