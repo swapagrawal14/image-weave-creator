@@ -1,26 +1,651 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>image-weave-creator</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <meta property="og:title" content="image-weave-creator" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
 
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .security-warning {
+            background: linear-gradient(135deg, #ff9a56, #ff6b6b);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #444;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="password"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="password"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #fafafa;
+        }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .thumbnails-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .thumbnail {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.05);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .thumbnail .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #ff4757;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail .remove-btn:hover {
+            background: #ff4757;
+            color: white;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .status-message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #2196f3;
+        }
+
+        .status-message.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .result-image {
+            max-width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .result-text {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-style: italic;
+            color: #555;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .grid-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .thumbnails-container {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 AI Image Generator</h1>
+            <p>Upload reference images and describe your vision to generate stunning AI artwork</p>
+        </div>
+
+        <div class="security-warning">
+            ⚠️ Security Notice: API keys entered here are stored locally in your browser and sent directly to Google's servers. Never share your API key with others.
+        </div>
+
+        <div class="form-section">
+            <h3>🔑 API Configuration</h3>
+            <div class="input-group">
+                <label for="apiKey">Google Generative AI API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your Google API key..." />
+            </div>
+        </div>
+
+        <div class="grid-layout">
+            <div class="form-section">
+                <h3>📝 Text Prompt</h3>
+                <div class="input-group">
+                    <label for="textPrompt">Describe what you want to generate:</label>
+                    <textarea id="textPrompt" placeholder="A futuristic city at sunset with flying cars and neon lights..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🖼️ Reference Images</h3>
+                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <p>Click to upload images or drag and drop</p>
+                    <small>Supports JPEG, PNG, WebP (multiple files)</small>
+                </div>
+                <input type="file" id="fileInput" multiple accept="image/jpeg,image/png,image/webp" />
+                
+                <div id="thumbnailsContainer" class="thumbnails-container"></div>
+            </div>
+        </div>
+
+        <button id="generateBtn" class="generate-btn">
+            Generate Image ✨
+        </button>
+
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <h3>🎯 Generated Result</h3>
+            <img id="resultImage" class="result-image" style="display: none;" />
+            <div id="resultText" class="result-text" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        class AIImageGenerator {
+            constructor() {
+                this.uploadedImages = [];
+                this.initializeElements();
+                this.setupEventListeners();
+                this.loadApiKey();
+            }
+
+            initializeElements() {
+                this.apiKeyInput = document.getElementById('apiKey');
+                this.textPromptInput = document.getElementById('textPrompt');
+                this.fileInput = document.getElementById('fileInput');
+                this.fileUploadArea = document.querySelector('.file-upload-area');
+                this.thumbnailsContainer = document.getElementById('thumbnailsContainer');
+                this.generateBtn = document.getElementById('generateBtn');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.resultsSection = document.getElementById('resultsSection');
+                this.resultImage = document.getElementById('resultImage');
+                this.resultText = document.getElementById('resultText');
+            }
+
+            setupEventListeners() {
+                // API key storage
+                this.apiKeyInput.addEventListener('change', () => this.saveApiKey());
+                
+                // File input handling
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                
+                // Drag and drop
+                this.fileUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+                this.fileUploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                this.fileUploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+                
+                // Generate button
+                this.generateBtn.addEventListener('click', () => this.generateImage());
+            }
+
+            loadApiKey() {
+                const savedKey = localStorage.getItem('google_ai_api_key');
+                if (savedKey) {
+                    this.apiKeyInput.value = savedKey;
+                }
+            }
+
+            saveApiKey() {
+                localStorage.setItem('google_ai_api_key', this.apiKeyInput.value);
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                this.fileUploadArea.classList.add('dragover');
+            }
+
+            handleDragLeave(e) {
+                e.preventDefault();
+                this.fileUploadArea.classList.remove('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                this.fileUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                this.processFiles(files);
+            }
+
+            handleFileSelect(e) {
+                const files = e.target.files;
+                this.processFiles(files);
+            }
+
+            async processFiles(files) {
+                this.showStatus('Processing files...', 'info');
+                
+                for (let file of files) {
+                    if (file.type.match(/^image\/(jpeg|png|webp)$/)) {
+                        try {
+                            const imageData = await this.readFileAsBase64(file);
+                            const imageObj = {
+                                id: Date.now() + Math.random(),
+                                name: file.name,
+                                mimeType: file.type,
+                                data: imageData,
+                                file: file
+                            };
+                            
+                            this.uploadedImages.push(imageObj);
+                            this.createThumbnail(imageObj);
+                        } catch (error) {
+                            console.error('Error processing file:', file.name, error);
+                        }
+                    }
+                }
+                
+                this.updateStatus();
+            }
+
+            readFileAsBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        // Remove data:image/...;base64, prefix
+                        const base64 = reader.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            createThumbnail(imageObj) {
+                const thumbnailDiv = document.createElement('div');
+                thumbnailDiv.className = 'thumbnail fade-in';
+                thumbnailDiv.innerHTML = `
+                    <img src="data:${imageObj.mimeType};base64,${imageObj.data}" alt="${imageObj.name}" />
+                    <button class="remove-btn" onclick="app.removeImage('${imageObj.id}')">&times;</button>
+                `;
+                
+                this.thumbnailsContainer.appendChild(thumbnailDiv);
+            }
+
+            removeImage(imageId) {
+                this.uploadedImages = this.uploadedImages.filter(img => img.id != imageId);
+                this.refreshThumbnails();
+                this.updateStatus();
+            }
+
+            refreshThumbnails() {
+                this.thumbnailsContainer.innerHTML = '';
+                this.uploadedImages.forEach(imageObj => {
+                    this.createThumbnail(imageObj);
+                });
+            }
+
+            updateStatus() {
+                const count = this.uploadedImages.length;
+                if (count > 0) {
+                    this.showStatus(`${count} image${count !== 1 ? 's' : ''} ready for generation`, 'success');
+                } else {
+                    this.hideStatus();
+                }
+            }
+
+            showStatus(message, type = 'info') {
+                this.statusMessage.textContent = message;
+                this.statusMessage.className = `status-message ${type}`;
+                this.statusMessage.style.display = 'block';
+            }
+
+            hideStatus() {
+                this.statusMessage.style.display = 'none';
+            }
+
+            async generateImage() {
+                // Validation
+                if (!this.apiKeyInput.value.trim()) {
+                    this.showStatus('Please enter your Google API key', 'error');
+                    return;
+                }
+
+                if (!this.textPromptInput.value.trim()) {
+                    this.showStatus('Please enter a text prompt', 'error');
+                    return;
+                }
+
+                // Disable button and show loading
+                this.generateBtn.disabled = true;
+                this.generateBtn.innerHTML = '<span class="loading-spinner"></span>Generating...';
+                this.showStatus('Generating your image...', 'info');
+
+                try {
+                    const requestBody = this.buildRequestBody();
+                    console.log('API Request:', JSON.stringify(requestBody, null, 2));
+
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${this.apiKeyInput.value}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(requestBody)
+                        }
+                    );
+
+                    const responseData = await response.json();
+                    console.log('API Response:', responseData);
+
+                    if (!response.ok) {
+                        throw new Error(responseData.error?.message || `API Error: ${response.status}`);
+                    }
+
+                    this.handleSuccessResponse(responseData);
+
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    this.showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    // Re-enable button
+                    this.generateBtn.disabled = false;
+                    this.generateBtn.innerHTML = 'Generate Image ✨';
+                }
+            }
+
+            buildRequestBody() {
+                const parts = [];
+                
+                // Add text prompt
+                parts.push({
+                    "text": this.textPromptInput.value.trim()
+                });
+
+                // Add each uploaded image
+                this.uploadedImages.forEach(imageObj => {
+                    parts.push({
+                        "inline_data": {
+                            "mime_type": imageObj.mimeType,
+                            "data": imageObj.data
+                        }
+                    });
+                });
+
+                return {
+                    "contents": [{
+                        "parts": parts
+                    }],
+                    "generationConfig": {
+                        "responseModalities": ["TEXT", "IMAGE"]
+                    }
+                };
+            }
+
+            handleSuccessResponse(responseData) {
+                // Log debug information
+                if (responseData.candidates && responseData.candidates[0]) {
+                    const candidate = responseData.candidates[0];
+                    console.log('Finish Reason:', candidate.finishReason);
+                    console.log('Safety Ratings:', candidate.safetyRatings);
+                }
+
+                // Find image and text parts
+                let imageFound = false;
+                let textResponse = '';
+
+                if (responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content && responseData.candidates[0].content.parts) {
+                    const parts = responseData.candidates[0].content.parts;
+                    
+                    parts.forEach(part => {
+                        if (part.inlineData && part.inlineData.data) {
+                            // Found generated image
+                            const imageDataUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                            this.resultImage.src = imageDataUrl;
+                            this.resultImage.style.display = 'block';
+                            imageFound = true;
+                        } else if (part.text) {
+                            // Found text response
+                            textResponse = part.text;
+                        }
+                    });
+                }
+
+                if (imageFound) {
+                    this.showStatus('Image generated successfully!', 'success');
+                    this.resultsSection.style.display = 'block';
+                    
+                    if (textResponse) {
+                        this.resultText.textContent = textResponse;
+                        this.resultText.style.display = 'block';
+                    } else {
+                        this.resultText.style.display = 'none';
+                    }
+                    
+                    // Scroll to results
+                    this.resultsSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    this.showStatus('No image was generated. Please try a different prompt.', 'error');
+                }
+            }
+        }
+
+        // Initialize the application
+        const app = new AIImageGenerator();
+    </script>
+</body>
 </html>
